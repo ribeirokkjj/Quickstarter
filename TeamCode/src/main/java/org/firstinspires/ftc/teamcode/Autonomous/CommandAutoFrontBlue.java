@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -28,7 +27,7 @@ import java.util.List;
 public class CommandAutoFrontBlue extends CommandOpMode {
 
     private Robot robot;
-    private Paths paths;
+    private AutoPaths paths;
     private IntakeRunCommand intake;
     private boolean stateInit, arrived = false;
     private Timer pathTimer;
@@ -46,7 +45,7 @@ public class CommandAutoFrontBlue extends CommandOpMode {
         pathTimer = new Timer();
         teleopTimer = new Timer();
 
-        paths = new Paths(robot.follower);
+        paths = new AutoPaths();
 
         //Set alliance
         robot.setAlliance(Robot.Alliance.AUTO_BLUE);
@@ -115,7 +114,98 @@ public class CommandAutoFrontBlue extends CommandOpMode {
     }
 
     public void statePathUpdate() {
+        switch (pathState) {
+            case 0: // Score 1 (StartShot1)
+                robot.transfer.stop();
+                if (!stateInit) {
+                    robot.follower.followPath(paths.toShoot1);
+                    stateInit = true;
+                }
+                ShootLogic(1);
+                break;
 
+            case 1: // Coleta 1 (Intake1)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.Intake1);
+                    stateInit = true;
+                    Intake();
+                }
+                if (!robot.follower.isBusy()) {
+                    setPathState(2);
+                    endIntake();
+                }
+                break;
+
+            case 2: // Volta para atirar 2 (toShoot2)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.toShoot2);
+                    stateInit = true;
+                }
+                ShootLogic(3);
+                break;
+
+            case 3: // Coleta 2 (Intake2)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.Intake2);
+                    stateInit = true;
+                    Intake();
+                }
+                if (!robot.follower.isBusy()) {
+                    setPathState(4);
+                    endIntake();
+                }
+                break;
+
+            case 4: // Gate 1 (Gate1)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.Gate1);
+                    stateInit = true;
+                }
+                if (!robot.follower.isBusy()) {
+                    setPathState(5);
+                }
+                break;
+
+            case 5: // Volta para atirar 3 (toShoot3)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.toShoot3);
+                    stateInit = true;
+                }
+                ShootLogic(20);
+                break;
+
+            case 20:
+                if (!stateInit) {
+                    robot.follower.followPath(paths.Path10);
+                    stateInit = true;
+                }
+                if (!robot.follower.isBusy()) {
+                    setPathState(6);
+                }
+                break;
+            case 6: // Coleta 3 (Intake3)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.Intake3);
+                    stateInit = true;
+                    Intake();
+                }
+                if (!robot.follower.isBusy()) {
+                    setPathState(7);
+                    endIntake();
+                }
+                break;
+
+            case 7: // Volta para atirar 4 (toShoot4)
+                if (!stateInit) {
+                    robot.follower.followPath(paths.toShoot4);
+                    stateInit = true;
+                }
+                ShootLogic(8);
+                break;
+            case 8: // Estado final - robô parado, dados já salvos
+                // Não faz nada, autônomo acabou
+                break;
+        }
     }
 
     public void setPathState(int newState) {
@@ -173,78 +263,110 @@ public class CommandAutoFrontBlue extends CommandOpMode {
     /**
      * Inner class containing all autonomous paths, starting from the robot's initial pose.
      */
-    public static class Paths {
-        public PathChain MainChain;
+    private class AutoPaths {
+        public PathChain toShoot1;
+        public PathChain Intake1;
+        public PathChain toShoot2;
+        public PathChain Intake2;
+        public PathChain Gate1;
+        public PathChain toShoot3;
+        public PathChain Path10;
+        public PathChain Intake3;
+        public PathChain toShoot4;
 
-        public Paths(Follower follower) {
-            MainChain = follower.pathBuilder()
+        public AutoPaths() {
+            toShoot1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(40.346, 135.924),
-                                    new Pose(52.162, 91.283)
+                                    new Pose(33.700, 135.000),
+                                    new Pose(49.617, 87.990)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(135))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
+                    .build();
+
+            Intake1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(52.162, 91.283),
+                                    new Pose(49.617, 87.990),
                                     new Pose(47.122, 82.819),
-                                    new Pose(17.360, 83.919)
+                                    new Pose(18.332, 83.629)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                    .build();
+
+            toShoot2 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(17.360, 83.919),
-                                    new Pose(52.994, 90.173)
+                                    new Pose(18.332, 83.629),
+                                    new Pose(51.497, 86.281)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
+                    .build();
+
+            Intake2 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(52.994, 90.173),
+                                    new Pose(51.497, 86.281),
                                     new Pose(51.508, 55.743),
-                                    new Pose(10.610, 58.800)
+                                    new Pose(11.680, 60.005)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                    .build();
+
+            Gate1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(10.610, 58.800),
-                                    new Pose(17.664, 61.741),
-                                    new Pose(14.068, 67.332)
-                            )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(270))
-                    .addPath(
-                            new BezierLine(
-                                    new Pose(14.068, 67.332),
-                                    new Pose(53.827, 89.064)
-                            )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(135))
-                    .addPath(
-                            new BezierCurve(
-                                    new Pose(53.827, 89.064),
-                                    new Pose(37.034, 72.206),
-                                    new Pose(10.048, 34.500)
+                                    new Pose(11.680, 60.005),
+                                    new Pose(26.782, 57.808),
+                                    new Pose(18.580, 69.201)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                    .build();
+
+            toShoot3 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(10.048, 34.500),
-                                    new Pose(54.659, 88.231)
+                                    new Pose(18.580, 69.201),
+                                    new Pose(51.133, 88.557)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
+                    .build();
+
+            Path10 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(54.659, 88.231),
-                                    new Pose(22.751, 71.861)
+                                    new Pose(51.133, 88.557),
+                                    new Pose(45.195, 43.564)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(129), Math.toRadians(180))
+                    .build();
+
+            Intake3 = robot.follower.pathBuilder()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(45.195, 43.564),
+                                    new Pose(39.218, 33.224),
+                                    new Pose(13.866, 35.247)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                    .build();
+
+            toShoot4 = robot.follower.pathBuilder()
+                    .addPath(
+                            new BezierLine(
+                                    new Pose(13.866, 35.247),
+                                    new Pose(64.171, 97.539)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
                     .build();
         }
     }
