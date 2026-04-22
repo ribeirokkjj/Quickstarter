@@ -34,7 +34,7 @@ public class CommandAutoFrontBlue extends CommandOpMode {
     private Timer teleopTimer;
     private int pathState = 0;
     private double startHeading = Math.toRadians(180);
-    public Pose startPose = new Pose(33.7, 133, startHeading);
+    public Pose startPose = new Pose(31.934862385321104, 131.89357798165136, startHeading);
     private List<Double> routine;
 
     @Override
@@ -171,17 +171,7 @@ public class CommandAutoFrontBlue extends CommandOpMode {
                     robot.follower.followPath(paths.toShoot3);
                     stateInit = true;
                 }
-                ShootLogic(20);
-                break;
-
-            case 20:
-                if (!stateInit) {
-                    robot.follower.followPath(paths.Path10);
-                    stateInit = true;
-                }
-                if (!robot.follower.isBusy()) {
-                    setPathState(6);
-                }
+                ShootLogic(6);
                 break;
             case 6: // Coleta 3 (Intake3)
                 if (!stateInit) {
@@ -270,27 +260,25 @@ public class CommandAutoFrontBlue extends CommandOpMode {
         public PathChain Intake2;
         public PathChain Gate1;
         public PathChain toShoot3;
-        public PathChain Path10;
         public PathChain Intake3;
         public PathChain toShoot4;
-
         public AutoPaths() {
             toShoot1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(33.700, 135.000),
-                                    new Pose(49.617, 87.990)
+                                    startPose,
+                                    new Pose(52.162, 91.283)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                     .build();
 
             Intake1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(49.617, 87.990),
+                                    new Pose(52.162, 91.283),
                                     new Pose(47.122, 82.819),
-                                    new Pose(18.332, 83.629)
+                                    new Pose(16.062, 82.621)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
@@ -299,19 +287,19 @@ public class CommandAutoFrontBlue extends CommandOpMode {
             toShoot2 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(18.332, 83.629),
-                                    new Pose(51.497, 86.281)
+                                    new Pose(16.062, 82.621),
+                                    new Pose(52.994, 90.173)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
                     .build();
 
             Intake2 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(51.497, 86.281),
+                                    new Pose(52.994, 90.173),
                                     new Pose(51.508, 55.743),
-                                    new Pose(11.680, 60.005)
+                                    new Pose(9.312, 58.021)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
@@ -320,9 +308,9 @@ public class CommandAutoFrontBlue extends CommandOpMode {
             Gate1 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(11.680, 60.005),
-                                    new Pose(26.782, 57.808),
-                                    new Pose(18.580, 69.201)
+                                    new Pose(9.312, 58.021),
+                                    new Pose(27.271, 55.769),
+                                    new Pose(15.886, 69.668)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
@@ -331,29 +319,19 @@ public class CommandAutoFrontBlue extends CommandOpMode {
             toShoot3 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(18.580, 69.201),
-                                    new Pose(51.133, 88.557)
+                                    new Pose(15.886, 69.668),
+                                    new Pose(53.827, 89.064)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(129))
-                    .build();
-
-            Path10 = robot.follower.pathBuilder()
-                    .addPath(
-                            new BezierLine(
-                                    new Pose(51.133, 88.557),
-                                    new Pose(45.195, 43.564)
-                            )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(129), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                     .build();
 
             Intake3 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(45.195, 43.564),
-                                    new Pose(39.218, 33.224),
-                                    new Pose(13.866, 35.247)
+                                    new Pose(53.827, 89.064),
+                                    new Pose(62.997, 26.251),
+                                    new Pose(10.048, 35.539)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
@@ -362,11 +340,11 @@ public class CommandAutoFrontBlue extends CommandOpMode {
             toShoot4 = robot.follower.pathBuilder()
                     .addPath(
                             new BezierLine(
-                                    new Pose(13.866, 35.247),
-                                    new Pose(64.171, 97.539)
+                                    new Pose(10.048, 35.539),
+                                    new Pose(56.996, 104.539)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(147))
                     .build();
         }
     }
