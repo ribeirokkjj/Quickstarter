@@ -204,7 +204,7 @@ public class BlueTeleop extends OpMode {
 
 //        // Use the smoothed values when commanding the follower teleop drive
 //        follower.setTeleOpDrive(currentDriveForward, currentDriveStrafe, currentDriveRotate, false, -1.5708);
-        follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, -1.5708);
+        follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, 3.141592);
 
         //LIMELIGHT
         limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading()));
