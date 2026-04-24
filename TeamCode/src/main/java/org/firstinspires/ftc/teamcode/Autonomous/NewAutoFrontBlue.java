@@ -372,7 +372,7 @@ public class NewAutoFrontBlue extends CommandOpMode {
                                     new Pose(52.994, 90.173)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(135))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(135))
                     .addPath(
                             new BezierCurve(
                                     new Pose(52.994, 90.173),
