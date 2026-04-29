@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.CoordinateSystem;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -18,6 +20,8 @@ import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
@@ -50,7 +54,7 @@ public class BlueTeleop extends OpMode {
     public double TicksPerRev = 28;
     private double turretPower;
     private double hoodPosition = 1;
-    private final double GOAL_RED_X = -65, GOAL_RED_Y = -64.3;
+    private final double GOAL_RED_X = -9, GOAL_RED_Y = -135;
     Deadline IMUTimer;
     private double odoX, odoY;
     private double turretAngle;
@@ -62,13 +66,13 @@ public class BlueTeleop extends OpMode {
     private double tF = 0.06;
     private double a = 0;
     DcMotorEx g,h,i,j;
-
     private double xGoalOffset;
     private double yGoalOffset;
     private double distance;
     public int stepIndex = 1;
     DcMotorEx intakeencoder = null;
     private boolean PDchange;
+    Pose2D pose2dTest = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS, 0);
     PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
 
     // --- Teleop smoothing (linear interpolation) ---
@@ -131,6 +135,7 @@ public class BlueTeleop extends OpMode {
 
             poseLoaded = true;
         } else {
+            follower.setPose(new Pose(72, 72, Math.toRadians(270)));
             poseLoaded = false;
         }
 
@@ -204,17 +209,21 @@ public class BlueTeleop extends OpMode {
 
 //        // Use the smoothed values when commanding the follower teleop drive
 //        follower.setTeleOpDrive(currentDriveForward, currentDriveStrafe, currentDriveRotate, false, -1.5708);
-        follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, 3.141592);
+        follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, 1.570796);
 
         //LIMELIGHT
-        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading()));
+        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading() - 4.71238898025));
 
         LLResult result = limelightChassis.getLatestResult();
+
         if (result != null && result.isValid()) {
             Pose3D camPose3D = result.getBotpose_MT2();
             if (camPose3D != null) {
+                pose2dTest = new Pose2D(DistanceUnit.INCH, camPose3D.getPosition().x, camPose3D.getPosition().y, AngleUnit.RADIANS, follower.getHeading());
                 camX = (camPose3D.getPosition().x * 39.3701);
                 camY = (camPose3D.getPosition().y * 39.3701);
+                camX = -(camY - 72);
+                camY = camX - 72;
                 errorVision = Math.hypot(camX - follower.getPose().getX(), camY - follower.getPose().getY());
                 if (gamepad1.aWasPressed()) {
                     follower.setPose(new Pose(camX, camY, follower.getHeading()));
@@ -224,8 +233,8 @@ public class BlueTeleop extends OpMode {
 
         //HEADING RESET
         if (gamepad1.bWasPressed()) {
-            follower.setPose(new Pose(follower.getPose().getX(), follower.getPose().getY(), Math.toRadians(0)));
-            loadedHeading = 0;
+            follower.setPose(new Pose(follower.getPose().getX(), follower.getPose().getY(), Math.toRadians(270)));
+            loadedHeading = 270;
         }
 
         // PINPOINT
@@ -247,7 +256,13 @@ public class BlueTeleop extends OpMode {
         heading = Math.toDegrees(follower.getHeading());
 
         double angleToGoal = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(dy, dx)) - heading + turretAngle);
-        turretPower = turretPID.calculate(angleToGoal);
+
+        if (gamepad1.y) {
+            turretPower = turretPID.calculate(turretAngle);
+        } else {
+            turretPower = turretPID.calculate(angleToGoal);
+        }
+
 
         //TURRET SYSTEM
         //OBS IMPORTNATE: O SINAL DO SETPOWER É SEMPRE O MESMO DO ÂNGULO
@@ -306,6 +321,7 @@ public class BlueTeleop extends OpMode {
 //        if (gamepad1.dpadUpWasPressed()) {
 //            targetVelocity = targetVelocity + 100;
 //    }
+
 
         double shooter_power = (targetVelocity * TicksPerRev / 60);
 
