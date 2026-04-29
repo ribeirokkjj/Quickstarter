@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.PoseConverter;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -16,53 +14,35 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TransferSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 
-import java.util.concurrent.TimeUnit;
-
-/**
- * Robot class that contains all subsystems and shared hardware/sensors.
- */
 public class Robot {
 
-
     // Subsystems
-    public final TurretSubsystem turret;
-    public final TransferSubsystem transfer;
-    public final FlywheelSubsystem flywheel;
-    public final IntakeSubsystem intake;
+    public final TurretSubsystem turretSubsystem;
+    public final TransferSubsystem transferSubsystem;
+    public final FlywheelSubsystem flywheelSubsystem;
+    public final IntakeSubsystem intakeSubsystem;
 
-    // Shared Hardware
+    //Sensors hardware and it's variables
+
     public final Follower follower;
     public final Limelight3A limelight;
 
-    // Goal coordinates
-    public double goalX;
-    public double goalY;
+    // Odometry
+    public double goalX, goalY;
+    private double limelightX, limelightY;
 
-    // Vision and localization state
-    private double camX = 0;
-    private double camY = 0;
-    // TeleOp drive offset (Heading adjustment for field-centric)
-    private double driveOffset = -1.5708;
     private boolean hasVision = false;
-    private double distanceToGoal = 0;
-    private double angleToGoal = 0;
-    public enum Alliance {
-        AUTO_BLUE,
-        AUTO_RED,
-        RED,
-        BLUE
-    }
-    /**
-     * Creates a new Robot with all subsystems.
-     *
-     * @param hardwareMap The hardware map from the OpMode
-     */
+    private double distanceToGoal;
+    private double angleToGoal;
+    public enum Alliance {AUTO_BLUE, AUTO_RED, RED, BLUE}
+    private double headingDriveOffset = -1.5708;
+
     public Robot(HardwareMap hardwareMap) {
         // Initialize subsystems
-        intake = new IntakeSubsystem(hardwareMap);
-        turret = new TurretSubsystem(hardwareMap, intake.getMotor());
-        transfer = new TransferSubsystem(hardwareMap);
-        flywheel = new FlywheelSubsystem(hardwareMap);
+        intakeSubsystem = new IntakeSubsystem(hardwareMap);
+        turretSubsystem = new TurretSubsystem(hardwareMap, intakeSubsystem.getMotor());
+        transferSubsystem = new TransferSubsystem(hardwareMap);
+        flywheelSubsystem = new FlywheelSubsystem(hardwareMap);
 
         // Initialize Pinpoint/Follower
         follower = Constants.createFollower(hardwareMap);
@@ -91,10 +71,10 @@ public class Robot {
     public void update() {
 
         // Update subsystems
-        turret.periodic();
-        transfer.periodic();
-        flywheel.periodic();
-        intake.periodic();
+        turretSubsystem.periodic();
+        transferSubsystem.periodic();
+        flywheelSubsystem.periodic();
+        intakeSubsystem.periodic();
 
         // Update follower
         follower.update();
@@ -116,11 +96,11 @@ public class Robot {
         if (result != null && result.isValid()) {
             Pose3D camPose3D = result.getBotpose_MT2();
             if (camPose3D != null) {
-                camX = (camPose3D.getPosition().x * 39.3701);
-                camY = (camPose3D.getPosition().y * 39.3701);
-                    double errorVision = Math.hypot(camX - follower.getPose().getX(), camY - follower.getPose().getY());
+                limelightX = (camPose3D.getPosition().x * 39.3701);
+                limelightY = (camPose3D.getPosition().y * 39.3701);
+                    double errorVision = Math.hypot(limelightX - follower.getPose().getX(), limelightY - follower.getPose().getY());
                 if (errorVision > 3) { //isso aqui é pra ser substituido pela correção pelo controle, mantendoo error > 3 como condição
-                    follower.setPose(new Pose(camX,camY,follower.getHeading()));
+                    follower.setPose(new Pose(limelightX, limelightY,follower.getHeading()));
                     hasVision = true;
                 }
             }
@@ -144,7 +124,7 @@ public class Robot {
         distanceToGoal = Math.hypot(dx, dy);
 
         // Calculate angle to goal relative to turret
-        double turretAngle = turret.getCurrentAngle();
+        double turretAngle = turretSubsystem.getCurrentAngle();
         angleToGoal = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(dy, dx)) - Math.toDegrees(follower.getTotalHeading()) + turretAngle);
     }
 
@@ -156,10 +136,10 @@ public class Robot {
     public void setAlliance(Alliance alliance) {
         if (alliance == Alliance.BLUE){
             setGoal(-65, -65);
-            driveOffset = -1.5707963267948966;
+            headingDriveOffset = -1.5707963267948966;
         } else if (alliance == Alliance.RED) {
             setGoal(-65, 65 );
-            driveOffset = 1.5707963267948966;
+            headingDriveOffset = 1.5707963267948966;
         } else if (alliance == Alliance.AUTO_BLUE) {
             setGoal(9, 135);
         } else if (alliance == Alliance.AUTO_RED){
@@ -194,15 +174,15 @@ public class Robot {
     /**
      * Get the camera X position from vision.
      */
-    public double getCamX() {
-        return camX;
+    public double getLimelightX() {
+        return limelightX;
     }
 
     /**
      * Get the camera Y position from vision.
      */
-    public double getCamY() {
-        return camY;
+    public double getLimelightY() {
+        return limelightY;
     }
 
     /**
@@ -259,6 +239,6 @@ public class Robot {
      * @param rotate Rotation input
      */
     public void setTeleOpDrive(double forward, double strafe, double rotate) {
-        follower.setTeleOpDrive(forward, strafe, rotate, false, driveOffset);
+        follower.setTeleOpDrive(forward, strafe, rotate, false, headingDriveOffset);
     }
 }

@@ -54,17 +54,17 @@ public class CommandAutoFrontBlue extends CommandOpMode {
         routine = new ArrayList<>();
 
         // Deixa a flywheel ligada 100% do tempo
-        robot.flywheel.setDefaultCommand(
-                new FlywheelRunCommand(robot.flywheel, robot)
+        robot.flywheelSubsystem.setDefaultCommand(
+                new FlywheelRunCommand(robot.flywheelSubsystem, robot)
         );
         // Also explicitly schedule the flywheel command to ensure it starts immediately
         // (some command schedulers require an explicit schedule to kick off default-like behavior)
         telemetry.addData("Auto", "Scheduled FlywheelRunCommand");
         // Set up the turret to track the goal continuously
-        robot.turret.setDefaultCommand(
+        robot.turretSubsystem.setDefaultCommand(
                 new TurretTrackCommand(
-                        robot.turret,
-                        robot.turret::getCurrentAngle
+                        robot.turretSubsystem,
+                        robot.turretSubsystem::getCurrentAngle
                 )
         );
     }
@@ -78,8 +78,8 @@ public class CommandAutoFrontBlue extends CommandOpMode {
         // Run the manual state machine
         statePathUpdate();
 
-        robot.flywheel.setVelocityForDistance(robot.getDistanceToGoal());
-        robot.flywheel.setHoodPosition(0.8);
+        robot.flywheelSubsystem.setVelocityForDistance(robot.getDistanceToGoal());
+        robot.flywheelSubsystem.setHoodPosition(0.8);
         Intake();
         endIntake();
 
@@ -102,13 +102,13 @@ public class CommandAutoFrontBlue extends CommandOpMode {
         // Telemetry
         telemetry.addData("State", pathState);
         telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
-        telemetry.addData("X LL", robot.getCamX());
-        telemetry.addData("Y LL", robot.getCamY());
+        telemetry.addData("X LL", robot.getLimelightX());
+        telemetry.addData("Y LL", robot.getLimelightY());
         telemetry.addData("X", robot.follower.getPose().getX());
         telemetry.addData("Y", robot.follower.getPose().getY());
         telemetry.addData("Heading", robot.getHeadingDegrees());
-        telemetry.addData("Turret Angle", robot.turret.getCurrentAngle());
-        telemetry.addData("error", robot.flywheel.getVelocityError());
+        telemetry.addData("Turret Angle", robot.turretSubsystem.getCurrentAngle());
+        telemetry.addData("error", robot.flywheelSubsystem.getVelocityError());
         telemetry.addData("Distance to Goal", robot.getDistanceToGoal());
         telemetry.update();
     }
@@ -116,7 +116,7 @@ public class CommandAutoFrontBlue extends CommandOpMode {
     public void statePathUpdate() {
         switch (pathState) {
             case 0: // Score 1 (StartShot1)
-                robot.transfer.stop();
+                robot.transferSubsystem.stop();
                 if (!stateInit) {
                     robot.follower.followPath(paths.toShoot1);
                     stateInit = true;
@@ -229,25 +229,25 @@ public class CommandAutoFrontBlue extends CommandOpMode {
     }
 
     public void Shoot() {
-        robot.intake.setPower(1);
-        if (robot.flywheel.isAtTargetVelocity() && !robot.follower.isBusy()) {
-            robot.transfer.runForward();
+        robot.intakeSubsystem.setPower(1);
+        if (robot.flywheelSubsystem.isAtTargetVelocity() && !robot.follower.isBusy()) {
+            robot.transferSubsystem.runForward();
         } else {
             // Se a velocidade cair (ex: após o primeiro disco sair), ele para e espera recuperar
-            robot.transfer.stop();
+            robot.transferSubsystem.stop();
         }
     }
 
     public void endShoot() {
-        robot.transfer.stop();
+        robot.transferSubsystem.stop();
     }
 
     public void Intake() {
-        robot.intake.setPower(1);
+        robot.intakeSubsystem.setPower(1);
     }
 
     public void endIntake() {
-        robot.intake.setPower(1);
+        robot.intakeSubsystem.setPower(1);
     }
 
     /**
