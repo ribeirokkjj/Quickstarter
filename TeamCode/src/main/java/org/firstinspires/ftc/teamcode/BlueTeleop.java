@@ -72,7 +72,6 @@ public class BlueTeleop extends OpMode {
     public int stepIndex = 1;
     DcMotorEx intakeencoder = null;
     private boolean PDchange;
-    Pose2D pose2dTest = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS, 0);
     PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
 
     // --- Teleop smoothing (linear interpolation) ---
@@ -93,7 +92,7 @@ public class BlueTeleop extends OpMode {
     private boolean poseLoaded = false;
     private double loadedX, loadedY, loadedHeading;
     private double savedX, savedY, savedHeading;
-
+    Pose testPose;
     private List<Double> routine;
 
     public void init() {
@@ -122,22 +121,23 @@ public class BlueTeleop extends OpMode {
         loadedY = routine.get(1);
         loadedHeading = routine.get(2);
 
-        // Se tem posição salva (não é 0,0,0), usa ela. Senão, começa em 0,0,0.
-        if (loadedX != 0 || loadedY != 0 || loadedHeading != 0) {
+//        // Se tem posição salva (não é 0,0,0), usa ela. Senão, começa em 0,0,0.
+//        if (loadedX != 0 || loadedY != 0 || loadedHeading != 0) {
+//
+//            savedX = -(loadedY - 72);
+//            savedY = loadedX - 72;
+//            loadedHeading = loadedHeading + 90;
+//            loadedHeading = loadedHeading % 360;
+//            if (loadedHeading > 180) loadedHeading -= 360;
+//            if (loadedHeading < -180) loadedHeading += 360;
+//            follower.setPose(new Pose(savedX, savedY, Math.toRadians(loadedHeading)));
+//
+//            poseLoaded = true;
+//        } else {
 
-            savedX = -(loadedY - 72);
-            savedY = loadedX - 72;
-            loadedHeading = loadedHeading + 90;
-            loadedHeading = loadedHeading % 360;
-            if (loadedHeading > 180) loadedHeading -= 360;
-            if (loadedHeading < -180) loadedHeading += 360;
-            follower.setPose(new Pose(savedX, savedY, Math.toRadians(loadedHeading)));
-
-            poseLoaded = true;
-        } else {
-            follower.setPose(new Pose(72, 72, Math.toRadians(270)));
-            poseLoaded = false;
-        }
+//            poseLoaded = false;
+//        }
+        follower.setPose(new Pose(72, 72, Math.toRadians(270)));
 
         //TELEOP
         driver = new GamepadEx(gamepad1);
@@ -212,21 +212,35 @@ public class BlueTeleop extends OpMode {
         follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, 1.570796);
 
         //LIMELIGHT
-        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading() - 4.71238898025));
+        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading() - 1.570796326));
 
         LLResult result = limelightChassis.getLatestResult();
 
-        if (result != null && result.isValid()) {
+//        if (result != null && result.isValid()) {
+//            Pose3D camPose3D = result.getBotpose_MT2();
+//            if (camPose3D != null) {
+//                pose2dTest = new Pose2D(DistanceUnit.INCH, camPose3D.getPosition().x, camPose3D.getPosition().y, AngleUnit.RADIANS, follower.getHeading());
+//                camX = (camPose3D.getPosition().x * 39.3701);
+//                camY = (camPose3D.getPosition().y * 39.3701);
+//                camX = -(camY - 72);
+//                camY = camX - 72;
+//                errorVision = Math.hypot(camX - follower.getPose().getX(), camY - follower.getPose().getY());
+//                if (gamepad1.aWasPressed()) {
+//                    follower.setPose(new Pose(camX, camY, follower.getHeading()));
+//                }
+//            }
+//        }
+
+                if (result != null && result.isValid()) {
             Pose3D camPose3D = result.getBotpose_MT2();
             if (camPose3D != null) {
-                pose2dTest = new Pose2D(DistanceUnit.INCH, camPose3D.getPosition().x, camPose3D.getPosition().y, AngleUnit.RADIANS, follower.getHeading());
                 camX = (camPose3D.getPosition().x * 39.3701);
                 camY = (camPose3D.getPosition().y * 39.3701);
-                camX = -(camY - 72);
-                camY = camX - 72;
+                Pose testPose = new Pose(camX, camY, 0);
+                testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
                 errorVision = Math.hypot(camX - follower.getPose().getX(), camY - follower.getPose().getY());
                 if (gamepad1.aWasPressed()) {
-                    follower.setPose(new Pose(camX, camY, follower.getHeading()));
+                    follower.setPose(new Pose(testPose.getX(), testPose.getY(), follower.getHeading()));
                 }
             }
         }
