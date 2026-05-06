@@ -233,6 +233,8 @@ public class BlueTeleop extends OpMode {
 //            }
 //        }
 
+
+        //SOLUCAO 1 PRO PROBLEMA
                 if (result != null && result.isValid()) {
             Pose3D camPose3D = result.getBotpose_MT2();
             if (camPose3D != null) {
@@ -240,10 +242,28 @@ public class BlueTeleop extends OpMode {
                 camY = (camPose3D.getPosition().y * 39.3701);
                 Pose testPose = new Pose(camX, camY, 0);
                 poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
-                testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+                testPose = testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
                 errorVision = Math.hypot(testPose.getX() - follower.getPose().getX(), testPose.getY() - follower.getPose().getY());
                 if (gamepad1.aWasPressed()) {
                     follower.setPose(new Pose(testPose.getX(), testPose.getY(), follower.getHeading()));
+                }
+            }
+        }
+
+        //SOLUCAO 2 PRO PROBLEMA
+
+        if (result != null && result.isValid()) {
+            Pose3D camPose3D = result.getBotpose_MT2();
+            if (camPose3D != null) {
+                camX = (camPose3D.getPosition().x * 39.3701);
+                camY = (camPose3D.getPosition().y * 39.3701);
+                Pose testPose = new Pose(camX, camY, 0);
+                poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
+                double newX = camY + 72;
+                double newY = 72 - camX;
+                errorVision = Math.hypot(newX - follower.getPose().getX(), newY - follower.getPose().getY());
+                if (gamepad1.aWasPressed()) {
+                    follower.setPose(new Pose(newX, newY, follower.getHeading()));
                 }
             }
         }
