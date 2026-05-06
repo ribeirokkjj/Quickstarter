@@ -34,6 +34,8 @@ import java.util.List;
 @TeleOp(name = "BLUE Alliance Teleop")
 public class BlueTeleop extends OpMode {
 
+    Pose poseVerifier;
+
     //FOLLOWER
     Follower follower;
     GamepadEx driver;
@@ -212,7 +214,7 @@ public class BlueTeleop extends OpMode {
         follower.setTeleOpDrive(targetDriveForward, targetDriveStrafe, targetDriveRotate, false, 1.570796);
 
         //LIMELIGHT
-        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading() - 1.570796326));
+        limelightChassis.updateRobotOrientation(Math.toDegrees(follower.getHeading() + 1.570796326));
 
         LLResult result = limelightChassis.getLatestResult();
 
@@ -237,8 +239,9 @@ public class BlueTeleop extends OpMode {
                 camX = (camPose3D.getPosition().x * 39.3701);
                 camY = (camPose3D.getPosition().y * 39.3701);
                 Pose testPose = new Pose(camX, camY, 0);
+                poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
                 testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
-                errorVision = Math.hypot(camX - follower.getPose().getX(), camY - follower.getPose().getY());
+                errorVision = Math.hypot(testPose.getX() - follower.getPose().getX(), testPose.getY() - follower.getPose().getY());
                 if (gamepad1.aWasPressed()) {
                     follower.setPose(new Pose(testPose.getX(), testPose.getY(), follower.getHeading()));
                 }
@@ -390,8 +393,10 @@ public class BlueTeleop extends OpMode {
         telemetry.addData("Step Size (Y to switch)","%.4f",stepSizes[stepIndex]);
         telemetry.addData("X LL",camX);
         telemetry.addData("Y LL",camY);
-        telemetry.addData("FusedX",odoX);
-        telemetry.addData("FusedY",odoY);
+        telemetry.addData("X",follower.getPose().getX());
+        telemetry.addData("Y",follower.getPose().getY());
+        telemetry.addData("Verifier X",poseVerifier.getX());
+        telemetry.addData("Verifier Y",poseVerifier.getY());
         telemetry.addData("X speed", follower.getVelocity().getXComponent());
         telemetry.addData("Y speed", follower.getVelocity().getYComponent());
 
