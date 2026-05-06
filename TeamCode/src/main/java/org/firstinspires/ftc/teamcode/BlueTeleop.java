@@ -395,8 +395,6 @@ public class BlueTeleop extends OpMode {
         telemetry.addData("Y LL",camY);
         telemetry.addData("X",follower.getPose().getX());
         telemetry.addData("Y",follower.getPose().getY());
-        telemetry.addData("Verifier X",poseVerifier.getX());
-        telemetry.addData("Verifier Y",poseVerifier.getY());
         telemetry.addData("X speed", follower.getVelocity().getXComponent());
         telemetry.addData("Y speed", follower.getVelocity().getYComponent());
 
