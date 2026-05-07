@@ -1,10 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.InvertedFTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
-import com.pedropathing.geometry.CoordinateSystem;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -20,8 +16,6 @@ import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
@@ -46,9 +40,8 @@ public class BlueTeleop extends OpMode {
 
     //ENCODERS AND LL
     Limelight3A limelightChassis;
-    private double camX;
+    private double camX, camY, newX, newY;
     private double heading;
-    private double camY;
     private double errorVision;
 
     // LOGICS
@@ -56,7 +49,7 @@ public class BlueTeleop extends OpMode {
     public double TicksPerRev = 28;
     private double turretPower;
     private double hoodPosition = 1;
-    private final double GOAL_RED_X = -9, GOAL_RED_Y = -135;
+    private final double GOAL_RED_X = 9, GOAL_RED_Y = 135;
     Deadline IMUTimer;
     private double odoX, odoY;
     private double turretAngle;
@@ -119,26 +112,6 @@ public class BlueTeleop extends OpMode {
             routine.add(Double.parseDouble(type));
         }
 
-        loadedX = routine.get(0);
-        loadedY = routine.get(1);
-        loadedHeading = routine.get(2);
-
-//        // Se tem posição salva (não é 0,0,0), usa ela. Senão, começa em 0,0,0.
-//        if (loadedX != 0 || loadedY != 0 || loadedHeading != 0) {
-//
-//            savedX = -(loadedY - 72);
-//            savedY = loadedX - 72;
-//            loadedHeading = loadedHeading + 90;
-//            loadedHeading = loadedHeading % 360;
-//            if (loadedHeading > 180) loadedHeading -= 360;
-//            if (loadedHeading < -180) loadedHeading += 360;
-//            follower.setPose(new Pose(savedX, savedY, Math.toRadians(loadedHeading)));
-//
-//            poseLoaded = true;
-//        } else {
-
-//            poseLoaded = false;
-//        }
         follower.setPose(new Pose(72, 72, Math.toRadians(270)));
 
         //TELEOP
@@ -234,21 +207,21 @@ public class BlueTeleop extends OpMode {
 //        }
 
 
-        //SOLUCAO 1 PRO PROBLEMA
-                if (result != null && result.isValid()) {
-            Pose3D camPose3D = result.getBotpose_MT2();
-            if (camPose3D != null) {
-                camX = (camPose3D.getPosition().x * 39.3701);
-                camY = (camPose3D.getPosition().y * 39.3701);
-                Pose testPose = new Pose(camX, camY, 0);
-                poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
-                testPose = testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
-                errorVision = Math.hypot(testPose.getX() - follower.getPose().getX(), testPose.getY() - follower.getPose().getY());
-                if (gamepad1.aWasPressed()) {
-                    follower.setPose(new Pose(testPose.getX(), testPose.getY(), follower.getHeading()));
-                }
-            }
-        }
+//        //SOLUCAO 1 PRO PROBLEMA
+//        if (result != null && result.isValid()) {
+//            Pose3D camPose3D = result.getBotpose_MT2();
+//            if (camPose3D != null) {
+//                camX = (camPose3D.getPosition().x * 39.3701);
+//                camY = (camPose3D.getPosition().y * 39.3701);
+//                Pose testPose = new Pose(camX, camY, 0);
+//                poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
+//                testPose = testPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+//                errorVision = Math.hypot(testPose.getX() - follower.getPose().getX(), testPose.getY() - follower.getPose().getY());
+//                if (gamepad1.aWasPressed()) {
+//                    follower.setPose(new Pose(testPose.getX(), testPose.getY(), follower.getHeading()));
+//                }
+//            }
+//        }
 
         //SOLUCAO 2 PRO PROBLEMA
 
@@ -259,8 +232,8 @@ public class BlueTeleop extends OpMode {
                 camY = (camPose3D.getPosition().y * 39.3701);
                 Pose testPose = new Pose(camX, camY, 0);
                 poseVerifier = new Pose(testPose.getX(), testPose.getY(),testPose.getHeading());
-                double newX = camY + 72;
-                double newY = 72 - camX;
+                newX = camY + 72;
+                newY = 72 - camX;
                 errorVision = Math.hypot(newX - follower.getPose().getX(), newY - follower.getPose().getY());
                 if (gamepad1.aWasPressed()) {
                     follower.setPose(new Pose(newX, newY, follower.getHeading()));
@@ -300,7 +273,6 @@ public class BlueTeleop extends OpMode {
             turretPower = turretPID.calculate(angleToGoal);
         }
 
-
         //TURRET SYSTEM
         //OBS IMPORTNATE: O SINAL DO SETPOWER É SEMPRE O MESMO DO ÂNGULO
         if (turretPower >= 0) { //F from PIDF
@@ -320,45 +292,10 @@ public class BlueTeleop extends OpMode {
         }
         turretMotor.setPower(turretPower);
 
-        //PIDF CALIBRATOR
-        double[] stepSizes = {10, 1, 0.1, 0.01, 0.001, 0.0001};
-        if (gamepad1.yWasPressed()) {
-            stepIndex = (stepIndex + 1) % stepSizes.length;
-        }
-
-        if (PDchange) {
-            turretPID.setPIDF(tP, 0.0, tD, 0);
-        }
-        PDchange = false;
-        if (gamepad1.dpadLeftWasPressed()) {
-            tP += stepSizes[stepIndex];
-            PDchange = true;
-        }
-        if (gamepad1.dpadRightWasPressed()) {
-            tP -= stepSizes[stepIndex];
-            PDchange = true;
-        }
-        if (gamepad1.dpadUpWasPressed()) {
-            tD += stepSizes[stepIndex];
-            PDchange = true;
-        }
-        if (gamepad1.dpadDownWasPressed()) {
-            tD -= stepSizes[stepIndex];
-            PDchange = true;
-        }
-
         //SHOOTER SYSTEM
         pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         shooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         shooter2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-
-//        if (gamepad1.dpadDownWasPressed()) {
-//            targetVelocity = targetVelocity - 100;
-//        }
-//        if (gamepad1.dpadUpWasPressed()) {
-//            targetVelocity = targetVelocity + 100;
-//    }
-
 
         double shooter_power = (targetVelocity * TicksPerRev / 60);
 
@@ -385,11 +322,6 @@ public class BlueTeleop extends OpMode {
         hoodPosition = 1 + (0.9 - 1) / Math.pow(1 + Math.pow(distance / 69.93993, 127.7445), 33.05428);
 
         hoodServo.setPosition(hoodPosition); //Set Hood position
-//        if (gamepad1.leftBumperWasPressed()) {
-//            hoodPosition = hoodPosition + 0.1;
-//        } else if (gamepad1.rightBumperWasPressed()) {
-//            hoodPosition = hoodPosition - 0.1;
-//        }
 
         //INTAKE AND LAUCHER SYSTEM
         boolean Intake = gamepad1.left_trigger > 0.1;
@@ -408,11 +340,8 @@ public class BlueTeleop extends OpMode {
         }
 
         //TELEMETRIES
-        telemetry.addData("P","%.5f (D-Pad U/D)",P);
-        telemetry.addData("F","%.5f (D-Pad L/R)", F);
-        telemetry.addData("Step Size (Y to switch)","%.4f",stepSizes[stepIndex]);
-        telemetry.addData("X LL",camX);
-        telemetry.addData("Y LL",camY);
+        telemetry.addData("X LL",newX);
+        telemetry.addData("Y LL",newY);
         telemetry.addData("X",follower.getPose().getX());
         telemetry.addData("Y",follower.getPose().getY());
         telemetry.addData("X speed", follower.getVelocity().getXComponent());
